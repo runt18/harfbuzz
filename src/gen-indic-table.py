@@ -75,7 +75,7 @@ print " * on files with these headers:"
 print " *"
 for h in headers:
 	for l in h:
-		print " * %s" % (l.strip())
+		print " * {0!s}".format((l.strip()))
 print " */"
 print
 print '#include "hb-ot-shape-complex-indic-private.hh"'
@@ -121,8 +121,7 @@ for i in range (2):
 				raise Exception ("Duplicate short value alias", v, all_shorts[i][s])
 			all_shorts[i][s] = v
 			short[i][v] = s
-		print "#define %s_%s	%s_%s	%s/* %3d chars; %s */" % \
-			(what_short[i], s, what[i], v.upper (), \
+		print "#define {0!s}_{1!s}	{2!s}_{3!s}	{4!s}/* {5:3d} chars; {6!s} */".format(what_short[i], s, what[i], v.upper (), \
 			'	'* ((48-1 - len (what[i]) - 1 - len (v)) / 8), \
 			values[i][v], v)
 print
@@ -138,18 +137,18 @@ def print_block (block, start, end, data):
 	if block and block != last_block:
 		print
 		print
-		print "  /* %s */" % block
+		print "  /* {0!s} */".format(block)
 	num = 0
 	assert start % 8 == 0
 	assert (end+1) % 8 == 0
 	for u in range (start, end+1):
 		if u % 8 == 0:
 			print
-			print "  /* %04X */" % u,
+			print "  /* {0:04X} */".format(u),
 		if u in data:
 			num += 1
 		d = data.get (u, defaults)
-		sys.stdout.write ("%9s" % ("_(%s,%s)," % (short[0][d[0]], short[1][d[1]])))
+		sys.stdout.write ("{0:9!s}".format(("_({0!s},{1!s}),".format(short[0][d[0]], short[1][d[1]]))))
 
 	total += end - start + 1
 	used += num
@@ -186,7 +185,7 @@ for u in uu:
 				offset += ends[-1] - starts[-1]
 			print
 			print
-			print "#define indic_offset_0x%04xu %d" % (start, offset)
+			print "#define indic_offset_0x{0:04x}u {1:d}".format(start, offset)
 			starts.append (start)
 
 	print_block (block, start, end, data)
@@ -197,23 +196,23 @@ print
 print
 occupancy = used * 100. / total
 page_bits = 12
-print "}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy)
+print "}}; /* Table items: {0:d}; occupancy: {1:d}% */".format(offset, occupancy)
 print
 print "INDIC_TABLE_ELEMENT_TYPE"
 print "hb_indic_get_categories (hb_codepoint_t u)"
 print "{"
-print "  switch (u >> %d)" % page_bits
+print "  switch (u >> {0:d})".format(page_bits)
 print "  {"
 pages = set([u>>page_bits for u in starts+ends+singles.keys()])
 for p in sorted(pages):
-	print "    case 0x%0Xu:" % p
+	print "    case 0x{0:0X}u:".format(p)
 	for (start,end) in zip (starts, ends):
 		if p not in [start>>page_bits, end>>page_bits]: continue
-		offset = "indic_offset_0x%04xu" % start
-		print "      if (hb_in_range (u, 0x%04Xu, 0x%04Xu)) return indic_table[u - 0x%04Xu + %s];" % (start, end-1, start, offset)
+		offset = "indic_offset_0x{0:04x}u".format(start)
+		print "      if (hb_in_range (u, 0x{0:04X}u, 0x{1:04X}u)) return indic_table[u - 0x{2:04X}u + {3!s}];".format(start, end-1, start, offset)
 	for u,d in singles.items ():
 		if p != u>>page_bits: continue
-		print "      if (unlikely (u == 0x%04Xu)) return _(%s,%s);" % (u, short[0][d[0]], short[1][d[1]])
+		print "      if (unlikely (u == 0x{0:04X}u)) return _({1!s},{2!s});".format(u, short[0][d[0]], short[1][d[1]])
 	print "      break;"
 	print ""
 print "    default:"
@@ -228,8 +227,7 @@ for i in range (2):
 	vv = values[i].keys ()
 	vv.sort ()
 	for v in vv:
-		print "#undef %s_%s" % \
-			(what_short[i], short[i][v])
+		print "#undef {0!s}_{1!s}".format(what_short[i], short[i][v])
 print
 print "/* == End of generated table == */"
 
