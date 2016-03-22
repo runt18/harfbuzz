@@ -51,7 +51,9 @@ class ColorFormatter:
 		def newline (): return '<br/>\n'
 
 	@staticmethod
-	def Auto (argv = [], out = sys.stdout):
+	def Auto (argv = None, out = sys.stdout):
+		if argv is None:
+				argv = []
 		format = ColorFormatter.ANSI
 		if "--format" in argv:
 			argv.remove ("--format")
