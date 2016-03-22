@@ -67,7 +67,7 @@ def print_joining_table(f):
 
 	print
 	for value,short in short_value.items():
-		print "#define %s	%s" % (short, value)
+		print "#define {0!s}	{1!s}".format(short, value)
 
 	uu = sorted(values.keys())
 	num = len(values)
@@ -90,7 +90,7 @@ def print_joining_table(f):
 	for start,end in ranges:
 
 		print
-		print "#define joining_offset_0x%04xu %d" % (start, offset)
+		print "#define joining_offset_0x{0:04x}u {1:d}".format(start, offset)
 
 		for u in range(start, end+1):
 
@@ -101,24 +101,24 @@ def print_joining_table(f):
 				if u != start:
 					print
 				if block in all_blocks:
-					print "\n  /* %s */" % block
+					print "\n  /* {0!s} */".format(block)
 				else:
 					print "\n  /* FILLER */"
 				last_block = block
 				if u % 32 != 0:
 					print
-					print "  /* %04X */" % (u//32*32), "  " * (u % 32),
+					print "  /* {0:04X} */".format((u//32*32)), "  " * (u % 32),
 
 			if u % 32 == 0:
 				print
-				print "  /* %04X */ " % u,
-			sys.stdout.write("%s," % short_value[value])
+				print "  /* {0:04X} */ ".format(u),
+			sys.stdout.write("{0!s},".format(short_value[value]))
 		print
 
 		offset += end - start + 1
 	print
 	occupancy = num * 100. / offset
-	print "}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy)
+	print "}}; /* Table items: {0:d}; occupancy: {1:d}% */".format(offset, occupancy)
 	print
 
 	page_bits = 12;
@@ -126,15 +126,15 @@ def print_joining_table(f):
 	print "static unsigned int"
 	print "joining_type (hb_codepoint_t u)"
 	print "{"
-	print "  switch (u >> %d)" % page_bits
+	print "  switch (u >> {0:d})".format(page_bits)
 	print "  {"
 	pages = set([u>>page_bits for u in [s for s,e in ranges]+[e for s,e in ranges]])
 	for p in sorted(pages):
-		print "    case 0x%0Xu:" % p
+		print "    case 0x{0:0X}u:".format(p)
 		for (start,end) in ranges:
 			if p not in [start>>page_bits, end>>page_bits]: continue
-			offset = "joining_offset_0x%04xu" % start
-			print "      if (hb_in_range (u, 0x%04Xu, 0x%04Xu)) return joining_table[u - 0x%04Xu + %s];" % (start, end, start, offset)
+			offset = "joining_offset_0x{0:04x}u".format(start)
+			print "      if (hb_in_range (u, 0x{0:04X}u, 0x{1:04X}u)) return joining_table[u - 0x{2:04X}u + {3!s}];".format(start, end, start, offset)
 		print "      break;"
 		print ""
 	print "    default:"
@@ -144,7 +144,7 @@ def print_joining_table(f):
 	print "}"
 	print
 	for value,short in short_value.items():
-		print "#undef %s" % (short)
+		print "#undef {0!s}".format((short))
 	print
 
 def print_shaping_table(f):
@@ -195,13 +195,13 @@ def print_shaping_table(f):
 	for u in range (min_u, max_u + 1):
 		s = [shapes[u][shape] if u in shapes and shape in shapes[u] else 0
 		     for shape in  ['initial', 'medial', 'final', 'isolated']]
-		value = ', '.join ("0x%04Xu" % c for c in s)
-		print "  {%s}, /* U+%04X %s */" % (value, u, names[u] if u in names else "")
+		value = ', '.join ("0x{0:04X}u".format(c) for c in s)
+		print "  {{{0!s}}}, /* U+{1:04X} {2!s} */".format(value, u, names[u] if u in names else "")
 
 	print "};"
 	print
-	print "#define SHAPING_TABLE_FIRST	0x%04Xu" % min_u
-	print "#define SHAPING_TABLE_LAST	0x%04Xu" % max_u
+	print "#define SHAPING_TABLE_FIRST	0x{0:04X}u".format(min_u)
+	print "#define SHAPING_TABLE_LAST	0x{0:04X}u".format(max_u)
 	print
 
 	ligas = {}
@@ -224,16 +224,16 @@ def print_shaping_table(f):
 	print " struct ligature_pairs_t {"
 	print "   uint16_t second;"
 	print "   uint16_t ligature;"
-	print " } ligatures[%d];" % max_i
+	print " }} ligatures[{0:d}];".format(max_i)
 	print "} ligature_table[] ="
 	print "{"
 	keys = ligas.keys ()
 	keys.sort ()
 	for first in keys:
 
-		print "  { 0x%04Xu, {" % (first)
+		print "  {{ 0x{0:04X}u, {{".format((first))
 		for liga in ligas[first]:
-			print "    { 0x%04Xu, 0x%04Xu }, /* %s */" % (liga[0], liga[1], names[liga[1]])
+			print "    {{ 0x{0:04X}u, 0x{1:04X}u }}, /* {2!s} */".format(liga[0], liga[1], names[liga[1]])
 		print "  }},"
 
 	print "};"
@@ -251,7 +251,7 @@ print " * on files with these headers:"
 print " *"
 for h in headers:
 	for l in h:
-		print " * %s" % (l.strip())
+		print " * {0!s}".format((l.strip()))
 print " */"
 print
 print "#ifndef HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH"

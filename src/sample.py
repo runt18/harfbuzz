@@ -55,4 +55,4 @@ for info,pos in zip(infos, positions):
 	x_offset = pos.x_offset
 	y_offset = pos.y_offset
 
-	print("gid%d=%d@%d,%d+%d" % (gid, cluster, x_advance, x_offset, y_offset))
+	print("gid{0:d}={1:d}@{2:d},{3:d}+{4:d}".format(gid, cluster, x_advance, x_offset, y_offset))

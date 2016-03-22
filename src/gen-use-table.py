@@ -297,7 +297,7 @@ def map_to_use(data):
 
 		evals = [(k, v(U,UISC,UGC)) for k,v in items]
 		values = [k for k,v in evals if v]
-		assert len(values) == 1, "%s %s %s %s" % (hex(U), UISC, UGC, values)
+		assert len(values) == 1, "{0!s} {1!s} {2!s} {3!s}".format(hex(U), UISC, UGC, values)
 		USE = values[0]
 
 		# Resolve Indic_Positional_Category
@@ -321,12 +321,12 @@ def map_to_use(data):
 		if 0x1CF8 <= U <= 0x1CF9: UIPC = Top
 
 		assert (UIPC in [Not_Applicable, Visual_Order_Left] or
-			USE in use_positions), "%s %s %s %s %s" % (hex(U), UIPC, USE, UISC, UGC)
+			USE in use_positions), "{0!s} {1!s} {2!s} {3!s} {4!s}".format(hex(U), UIPC, USE, UISC, UGC)
 
 		pos_mapping = use_positions.get(USE, None)
 		if pos_mapping:
 			values = [k for k,v in pos_mapping.items() if v and UIPC in v]
-			assert len(values) == 1, "%s %s %s %s %s %s" % (hex(U), UIPC, USE, UISC, UGC, values)
+			assert len(values) == 1, "{0!s} {1!s} {2!s} {3!s} {4!s} {5!s}".format(hex(U), UIPC, USE, UISC, UGC, values)
 			USE = USE + values[0]
 
 		out[U] = (USE, UBlock)
@@ -351,7 +351,7 @@ print " * on files with these headers:"
 print " *"
 for h in headers:
 	for l in h:
-		print " * %s" % (l.strip())
+		print " * {0!s}".format((l.strip()))
 print " */"
 print
 print '#include "hb-ot-shape-complex-use-private.hh"'
@@ -365,7 +365,7 @@ def print_block (block, start, end, data):
 	if block and block != last_block:
 		print
 		print
-		print "  /* %s */" % block
+		print "  /* {0!s} */".format(block)
 		if start % 16:
 			print ' ' * (20 + (start % 16 * 6)),
 	num = 0
@@ -374,11 +374,11 @@ def print_block (block, start, end, data):
 	for u in range (start, end+1):
 		if u % 16 == 0:
 			print
-			print "  /* %04X */" % u,
+			print "  /* {0:04X} */".format(u),
 		if u in data:
 			num += 1
 		d = data.get (u, defaults)
-		sys.stdout.write ("%6s," % d[0])
+		sys.stdout.write ("{0:6!s},".format(d[0]))
 
 	total += end - start + 1
 	used += num
@@ -395,12 +395,12 @@ starts = []
 ends = []
 for k,v in sorted(use_mapping.items()):
 	if k in use_positions and use_positions[k]: continue
-	print "#define %s	USE_%s	/* %s */" % (k, k, v.__name__[3:])
+	print "#define {0!s}	USE_{1!s}	/* {2!s} */".format(k, k, v.__name__[3:])
 for k,v in sorted(use_positions.items()):
 	if not v: continue
 	for suf in v.keys():
 		tag = k + suf
-		print "#define %s	USE_%s" % (tag, tag)
+		print "#define {0!s}	USE_{1!s}".format(tag, tag)
 print ""
 print "static const USE_TABLE_ELEMENT_TYPE use_table[] = {"
 for u in uu:
@@ -424,7 +424,7 @@ for u in uu:
 				offset += ends[-1] - starts[-1]
 			print
 			print
-			print "#define use_offset_0x%04xu %d" % (start, offset)
+			print "#define use_offset_0x{0:04x}u {1:d}".format(start, offset)
 			starts.append (start)
 
 	print_block (block, start, end, data)
@@ -435,23 +435,23 @@ print
 print
 occupancy = used * 100. / total
 page_bits = 12
-print "}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy)
+print "}}; /* Table items: {0:d}; occupancy: {1:d}% */".format(offset, occupancy)
 print
 print "USE_TABLE_ELEMENT_TYPE"
 print "hb_use_get_categories (hb_codepoint_t u)"
 print "{"
-print "  switch (u >> %d)" % page_bits
+print "  switch (u >> {0:d})".format(page_bits)
 print "  {"
 pages = set([u>>page_bits for u in starts+ends+singles.keys()])
 for p in sorted(pages):
-	print "    case 0x%0Xu:" % p
+	print "    case 0x{0:0X}u:".format(p)
 	for (start,end) in zip (starts, ends):
 		if p not in [start>>page_bits, end>>page_bits]: continue
-		offset = "use_offset_0x%04xu" % start
-		print "      if (hb_in_range (u, 0x%04Xu, 0x%04Xu)) return use_table[u - 0x%04Xu + %s];" % (start, end-1, start, offset)
+		offset = "use_offset_0x{0:04x}u".format(start)
+		print "      if (hb_in_range (u, 0x{0:04X}u, 0x{1:04X}u)) return use_table[u - 0x{2:04X}u + {3!s}];".format(start, end-1, start, offset)
 	for u,d in singles.items ():
 		if p != u>>page_bits: continue
-		print "      if (unlikely (u == 0x%04Xu)) return %s;" % (u, d[0])
+		print "      if (unlikely (u == 0x{0:04X}u)) return {1!s};".format(u, d[0])
 	print "      break;"
 	print ""
 print "    default:"
@@ -462,12 +462,12 @@ print "}"
 print
 for k in sorted(use_mapping.keys()):
 	if k in use_positions and use_positions[k]: continue
-	print "#undef %s" % k
+	print "#undef {0!s}".format(k)
 for k,v in sorted(use_positions.items()):
 	if not v: continue
 	for suf in v.keys():
 		tag = k + suf
-		print "#undef %s" % tag
+		print "#undef {0!s}".format(tag)
 print
 print "/* == End of generated table == */"
 
